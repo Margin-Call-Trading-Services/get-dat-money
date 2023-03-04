@@ -18,16 +18,17 @@ import (
 func main() {
 
 	dbCfg := db.NewPostgresConfig()
-	db := db.NewPostgresDatabase(dbCfg)
+	dbConn := dbCfg.Connect()
+
+	db := db.NewPostgresDatabase(dbConn)
 	log.Println("Established PostgresDatabase struct.")
 
-	dbConn := db.Connect()
 	log.Println("Successfully connected to DB.")
 	defer dbConn.Close()
 
 	fetcher := fetchers.NewYahooFinanceFetcher()
 
-	svc := server.NewService(db, dbConn, fetcher)
+	svc := server.NewService(db, fetcher)
 
 	app := fiber.New()
 
