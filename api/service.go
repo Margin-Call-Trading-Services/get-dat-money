@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"log"
 	"time"
@@ -17,21 +16,19 @@ type Service interface {
 
 type service struct {
 	db      db.Database
-	dbConn  *sql.DB
 	fetcher fetchers.DataFetcher
 }
 
-func NewService(db db.Database, dbConn *sql.DB, fetcher fetchers.DataFetcher) Service {
+func NewService(db db.Database, fetcher fetchers.DataFetcher) Service {
 	return &service{
 		db:      db,
-		dbConn:  dbConn,
 		fetcher: fetcher,
 	}
 }
 
 func (s *service) GetTickerData(ctx context.Context, ticker string, startDate, endDate time.Time, interval string) ([]fetchers.PriceData, error) {
 
-	tickerExists, err := s.db.CheckTickerExists(ticker, s.dbConn)
+	tickerExists, err := s.db.CheckTickerExists(ticker)
 	if err != nil {
 		return nil, err
 	}
