@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+const (
+	// Mimicking new time package constant
+	DateOnly = "2006-01-02"
+)
+
 func StrToFloat(fs string) float64 {
 	f, err := strToFloat(fs)
 	if err != nil {
@@ -39,7 +44,7 @@ func strToInt(is string) (int64, error) {
 }
 
 func ParseTimeStringDateOnly(timeStr string) (time.Time, error) {
-	t, err := time.Parse(time.DateOnly, timeStr)
+	t, err := time.Parse(DateOnly, timeStr)
 	if err != nil {
 		return time.Time{}, err
 	}
