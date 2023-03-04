@@ -28,7 +28,7 @@ func main() {
 
 	fetcher := fetchers.NewYahooFinanceFetcher()
 
-	svc := server.NewService(db, dbConn, fetcher)
+	svc := server.NewService(db, fetcher)
 
 	app := fiber.New()
 

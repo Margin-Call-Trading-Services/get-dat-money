@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"log"
 	"time"
@@ -17,14 +16,12 @@ type Service interface {
 
 type service struct {
 	db      db.Database
-	dbConn  *sql.DB
 	fetcher fetchers.DataFetcher
 }
 
-func NewService(db db.Database, dbConn *sql.DB, fetcher fetchers.DataFetcher) Service {
+func NewService(db db.Database, fetcher fetchers.DataFetcher) Service {
 	return &service{
 		db:      db,
-		dbConn:  dbConn,
 		fetcher: fetcher,
 	}
 }
