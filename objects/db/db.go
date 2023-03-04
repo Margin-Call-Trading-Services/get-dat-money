@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -12,41 +11,23 @@ import (
 )
 
 type Database interface {
-	Connect() *sql.DB
-	CheckTickerExists(ticker string, db *sql.DB) (bool, error)
-	GetDataBetweenDates(t string, startDate, endDate time.Time, db *sql.DB) ([]fetchers.PriceData, error)
+	CheckTickerExists(ticker string) (bool, error)
+	GetDataBetweenDates(t string, startDate, endDate time.Time) ([]fetchers.PriceData, error)
 }
 
-func NewPostgresDatabase(cfg DatabaseConfig) *PostgresDatabase {
+func NewPostgresDatabase(conn *sql.DB) *PostgresDatabase {
 	return &PostgresDatabase{
-		Config: cfg,
+		dbConn: conn,
 	}
 }
 
 type PostgresDatabase struct {
-	Config DatabaseConfig
+	dbConn *sql.DB
 }
 
-func (p *PostgresDatabase) Connect() *sql.DB {
-	connStr := p.Config.GetConnectionStr()
-	log.Printf("Postgres Connection string is: %s\n", connStr)
+func (p *PostgresDatabase) CheckTickerExists(t string) (bool, error) {
 
-	db, err := sql.Open("postgres", connStr)
-
-	if err != nil {
-		panic(err)
-	}
-
-	if err = db.Ping(); err != nil {
-		panic(err)
-	}
-
-	return db
-}
-
-func (p *PostgresDatabase) CheckTickerExists(t string, db *sql.DB) (bool, error) {
-
-	rows, err := db.Query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'public';")
+	rows, err := p.dbConn.Query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'public';")
 
 	if err != nil {
 		return false, err
@@ -67,7 +48,7 @@ func (p *PostgresDatabase) CheckTickerExists(t string, db *sql.DB) (bool, error)
 	return false, nil
 }
 
-func (p *PostgresDatabase) GetDataBetweenDates(t string, startDate, endDate time.Time, db *sql.DB) ([]fetchers.PriceData, error) {
+func (p *PostgresDatabase) GetDataBetweenDates(t string, startDate, endDate time.Time) ([]fetchers.PriceData, error) {
 
 	query := fmt.Sprintf(
 		"SELECT * FROM %s WHERE %s BETWEEN %s AND %s;",
@@ -77,7 +58,7 @@ func (p *PostgresDatabase) GetDataBetweenDates(t string, startDate, endDate time
 		endDate.Format(utils.DateOnly),
 	)
 
-	rows, err := db.Query(query)
+	rows, err := p.dbConn.Query(query)
 	if err != nil {
 		return nil, err
 	}

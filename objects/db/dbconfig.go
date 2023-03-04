@@ -1,12 +1,13 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 )
 
 type DatabaseConfig interface {
-	GetConnectionStr() string
+	Connect() *sql.DB
 }
 
 func NewPostgresConfig() PostgresDatabaseConfig {
@@ -25,6 +26,21 @@ type PostgresDatabaseConfig struct {
 	user     string
 	password string
 	dbname   string
+}
+
+func (pgcfg PostgresDatabaseConfig) Connect() *sql.DB {
+	connStr := pgcfg.GetConnectionStr()
+	db, err := sql.Open("postgres", connStr)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if err = db.Ping(); err != nil {
+		panic(err)
+	}
+
+	return db
 }
 
 func (pgcfg PostgresDatabaseConfig) GetConnectionStr() string {

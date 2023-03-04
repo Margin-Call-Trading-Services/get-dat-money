@@ -35,6 +35,8 @@ func successResponse(arg interface{}) *fiber.Map {
 func GetTickerDataHandler(svc Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
+		// TODO: put the API params in a struct or something for validation?
+
 		type resp struct {
 			Ticker string               `json:"ticker"`
 			Data   []fetchers.PriceData `json:"data"`

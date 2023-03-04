@@ -31,7 +31,7 @@ func NewService(db db.Database, dbConn *sql.DB, fetcher fetchers.DataFetcher) Se
 
 func (s *service) GetTickerData(ctx context.Context, ticker string, startDate, endDate time.Time, interval string) ([]fetchers.PriceData, error) {
 
-	tickerExists, err := s.db.CheckTickerExists(ticker, s.dbConn)
+	tickerExists, err := s.db.CheckTickerExists(ticker)
 	if err != nil {
 		return nil, err
 	}
