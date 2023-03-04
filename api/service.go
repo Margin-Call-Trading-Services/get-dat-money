@@ -11,7 +11,7 @@ import (
 )
 
 type Service interface {
-	GetTickerData(ctx context.Context, ticker string, startDate, endDate time.Time, interval string) ([]fetchers.PriceData, error)
+	GetTickerData(ctx context.Context, ticker string, startDate, endDate time.Time, interval string) ([]db.PriceData, error)
 }
 
 type service struct {
@@ -26,7 +26,7 @@ func NewService(db db.Database, fetcher fetchers.DataFetcher) Service {
 	}
 }
 
-func (s *service) GetTickerData(ctx context.Context, ticker string, startDate, endDate time.Time, interval string) ([]fetchers.PriceData, error) {
+func (s *service) GetTickerData(ctx context.Context, ticker string, startDate, endDate time.Time, interval string) ([]db.PriceData, error) {
 
 	tickerExists, err := s.db.CheckTickerExists(ticker)
 	if err != nil {

@@ -8,7 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"github.com/ryanlattanzi/go-hello-world/objects/fetchers"
+	"github.com/ryanlattanzi/go-hello-world/objects/db"
 	"github.com/ryanlattanzi/go-hello-world/utils"
 )
 
@@ -38,8 +38,8 @@ func GetTickerDataHandler(svc Service) fiber.Handler {
 		// TODO: put the API params in a struct or something for validation?
 
 		type resp struct {
-			Ticker string               `json:"ticker"`
-			Data   []fetchers.PriceData `json:"data"`
+			Ticker string         `json:"ticker"`
+			Data   []db.PriceData `json:"data"`
 		}
 
 		// Parse ticker

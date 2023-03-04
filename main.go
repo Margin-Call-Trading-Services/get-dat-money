@@ -21,10 +21,7 @@ func main() {
 	dbConn := dbCfg.Connect()
 
 	db := db.NewPostgresDatabase(dbConn)
-	log.Println("Established PostgresDatabase struct.")
-
 	log.Println("Successfully connected to DB.")
-	defer dbConn.Close()
 
 	fetcher := fetchers.NewYahooFinanceFetcher()
 

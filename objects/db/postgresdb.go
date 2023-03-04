@@ -1,27 +1,26 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 
-	"github.com/ryanlattanzi/go-hello-world/objects/fetchers"
 	"github.com/ryanlattanzi/go-hello-world/utils"
+	"gorm.io/gorm"
 )
 
-func NewPostgresDatabase(conn *sql.DB) *PostgresDatabase {
+func NewPostgresDatabase(conn *gorm.DB) *PostgresDatabase {
 	return &PostgresDatabase{
 		dbConn: conn,
 	}
 }
 
 type PostgresDatabase struct {
-	dbConn *sql.DB
+	dbConn *gorm.DB
 }
 
 func (p *PostgresDatabase) CheckTickerExists(t string) (bool, error) {
 
-	rows, err := p.dbConn.Query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'public';")
+	rows, err := p.dbConn.Raw("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'public';").Rows()
 
 	if err != nil {
 		return false, err
@@ -42,26 +41,26 @@ func (p *PostgresDatabase) CheckTickerExists(t string) (bool, error) {
 	return false, nil
 }
 
-func (p *PostgresDatabase) GetDataBetweenDates(t string, startDate, endDate time.Time) ([]fetchers.PriceData, error) {
+func (p *PostgresDatabase) GetDataBetweenDates(t string, startDate, endDate time.Time) ([]PriceData, error) {
 
 	query := fmt.Sprintf(
 		"SELECT * FROM %s WHERE %s BETWEEN %s AND %s;",
 		t,
-		fetchers.DateCol,
+		"date",
 		startDate.Format(utils.DateOnly),
 		endDate.Format(utils.DateOnly),
 	)
 
-	rows, err := p.dbConn.Query(query)
+	rows, err := p.dbConn.Raw(query).Rows()
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var priceData []fetchers.PriceData
+	var priceData []PriceData
 
 	for rows.Next() {
-		var pd fetchers.PriceData
+		var pd PriceData
 		err := rows.Scan(
 			&pd.Date,
 			&pd.Open,

@@ -1,9 +1,7 @@
 package db
 
-import (
-	"database/sql"
-)
+import "gorm.io/gorm"
 
 type DatabaseConfig interface {
-	Connect() *sql.DB
+	Connect() *gorm.DB
 }
