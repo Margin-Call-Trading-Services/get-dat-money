@@ -7,6 +7,16 @@ import (
 	"github.com/ryanlattanzi/go-hello-world/utils"
 )
 
+const (
+	DateCol     = "DATE"
+	OpenCol     = "OPEN"
+	HighCol     = "HIGH"
+	LowCol      = "LOW"
+	CloseCol    = "CLOSE"
+	AdjCloseCol = "ADJ_CLOSE"
+	VolumeCol   = "VOLUME"
+)
+
 type PriceData struct {
 	Date     string  `json:"date"`
 	Open     float64 `json:"open"`
@@ -21,7 +31,7 @@ type DataFetcher interface {
 	GetTickerData(ticker string, starDate, endDate time.Time, interval string) ([]PriceData, error)
 }
 
-func NewYahooFinanceFetcher() DataFetcher {
+func NewYahooFinanceFetcher() YahooFinanceFetcher {
 	return YahooFinanceFetcher{}
 }
 

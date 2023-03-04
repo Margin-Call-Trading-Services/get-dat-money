@@ -2,11 +2,13 @@ package server
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/ryanlattanzi/go-hello-world/fetchers"
+
+	"github.com/ryanlattanzi/go-hello-world/objects/fetchers"
 	"github.com/ryanlattanzi/go-hello-world/utils"
 )
 
@@ -34,8 +36,8 @@ func GetTickerDataHandler(svc Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
 		type resp struct {
-			ticker string               `json:"ticker"`
-			data   []fetchers.PriceData `json:"data"`
+			Ticker string               `json:"ticker"`
+			Data   []fetchers.PriceData `json:"data"`
 		}
 
 		// Parse ticker
@@ -55,7 +57,7 @@ func GetTickerDataHandler(svc Service) fiber.Handler {
 
 		// Parse end
 		currentTime := time.Now()
-		today := currentTime.Format(time.DateOnly)
+		today := currentTime.Format(utils.DateOnly)
 		end := c.Query("end_date", today)
 		endDate, err := utils.ParseTimeStringDateOnly(end)
 		if err != nil {
@@ -66,15 +68,18 @@ func GetTickerDataHandler(svc Service) fiber.Handler {
 		// Parse interval
 		interval := c.Query("interval", "1d")
 
-		data, err := svc.GetTickerData(c, ticker, startDate, endDate, interval)
+		log.Printf("Recieved GET request for %s from %s to %s", ticker, start, end)
+
+		data, err := svc.GetTickerData(c.Context(), ticker, startDate, endDate, interval)
 		if err != nil {
 			c.Status(http.StatusInternalServerError)
 			return c.JSON(errorResponse(err))
 		}
+		log.Printf("Recieved %d price records.", len(data))
 
 		return c.JSON(successResponse(resp{
-			ticker: ticker,
-			data:   data,
+			Ticker: ticker,
+			Data:   data,
 		}))
 	}
 }
