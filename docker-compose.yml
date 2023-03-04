@@ -1,9 +1,12 @@
 version: "3"
 
+networks:
+  algo_trading_network: null
+
 services:
   db:
+    container_name: price-database
     image: postgres:14-alpine
-    restart: always
     environment:
       - POSTGRES_USER=dev
       - POSTGRES_PASSWORD=password
@@ -12,11 +15,29 @@ services:
       - POSTGRES_PORT=5432
     ports:
       - 5432:5432
+    networks:
+      - algo_trading_network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U dev price_db" ]
+      test: [ "CMD-SHELL", "pg_isready -U dev -d price_db" ]
       interval: 5s
       timeout: 3s
       retries: 5
 
-volumes:
-  postgres_data: null
+  server:
+    container_name: price-data-api
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - "8080:8080"
+    environment:
+      - POSTGRES_USER=dev
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=price_db
+      - POSTGRES_HOST=price-database
+      - POSTGRES_PORT=5432
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - algo_trading_network
