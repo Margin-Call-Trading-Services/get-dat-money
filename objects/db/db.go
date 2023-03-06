@@ -1,9 +1,21 @@
 package db
 
 import (
-	"time"
+	"fmt"
 
 	_ "github.com/lib/pq"
+)
+
+const (
+	priceTableSchema = "price_data"
+
+	colDate     = "date"
+	colOpen     = "open"
+	colHigh     = "high"
+	colLow      = "low"
+	colClose    = "close"
+	colAdjClose = "adj_close"
+	colVolume   = "volume"
 )
 
 type PriceData struct {
@@ -17,6 +29,16 @@ type PriceData struct {
 }
 
 type Database interface {
-	CheckTickerExists(ticker string) (bool, error)
-	GetDataBetweenDates(t string, startDate, endDate time.Time) ([]PriceData, error)
+	CheckTickerPriceTableExists(ticker string) (bool, error)
+	CreateTickerPriceTable(ticker string) error
+	BulkUploadPriceData(ticker string, priceData []PriceData) error
+	GetDataBetweenDates(ticker, startDate, endDate string) ([]PriceData, error)
+}
+
+// Common utility functions used by various implementations
+
+func tickerPriceTableName(ticker string) string {
+	// Puts price data in the `price_data` schema
+	table := fmt.Sprintf("%s.%s", priceTableSchema, ticker)
+	return table
 }

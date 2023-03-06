@@ -1,4 +1,4 @@
-module github.com/ryanlattanzi/go-hello-world
+module github.com/ryanlattanzi/get-dat-money
 
 go 1.20
 

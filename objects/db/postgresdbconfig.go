@@ -6,30 +6,39 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
+
+	"github.com/ryanlattanzi/get-dat-money/utils"
 )
 
 func NewPostgresConfig() PostgresDatabaseConfig {
 	return PostgresDatabaseConfig{
-		host:     os.Getenv("POSTGRES_HOST"),
-		port:     os.Getenv("POSTGRES_PORT"),
-		user:     os.Getenv("POSTGRES_USER"),
-		password: os.Getenv("POSTGRES_PASSWORD"),
-		dbname:   os.Getenv("POSTGRES_DB"),
+		host:      os.Getenv("POSTGRES_HOST"),
+		port:      os.Getenv("POSTGRES_PORT"),
+		user:      os.Getenv("POSTGRES_USER"),
+		password:  os.Getenv("POSTGRES_PASSWORD"),
+		dbname:    os.Getenv("POSTGRES_DB"),
+		batchSize: os.Getenv("POSTGRES_BATCH_SIZE"),
 	}
 }
 
 type PostgresDatabaseConfig struct {
-	host     string
-	port     string
-	user     string
-	password string
-	dbname   string
+	host      string
+	port      string
+	user      string
+	password  string
+	dbname    string
+	batchSize string
 }
 
 func (pgcfg PostgresDatabaseConfig) Connect() *gorm.DB {
 	connStr := pgcfg.GetConnectionStr()
-	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
-
+	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix: priceTableSchema + ".",
+		},
+		CreateBatchSize: int(utils.StrToInt(pgcfg.batchSize)),
+	})
 	if err != nil {
 		panic(err)
 	}
