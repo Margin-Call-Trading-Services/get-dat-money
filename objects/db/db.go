@@ -1,8 +1,6 @@
 package db
 
 import (
-	"fmt"
-
 	_ "github.com/lib/pq"
 )
 
@@ -33,12 +31,4 @@ type Database interface {
 	CreateTickerPriceTable(ticker string) error
 	BulkUploadPriceData(ticker string, priceData []PriceData) error
 	GetDataBetweenDates(ticker, startDate, endDate string) ([]PriceData, error)
-}
-
-// Common utility functions used by various implementations
-
-func tickerPriceTableName(ticker string) string {
-	// Puts price data in the `price_data` schema
-	table := fmt.Sprintf("%s.%s", priceTableSchema, ticker)
-	return table
 }

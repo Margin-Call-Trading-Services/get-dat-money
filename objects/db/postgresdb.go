@@ -43,7 +43,7 @@ func (p *PostgresDatabase) CheckTickerPriceTableExists(ticker string) (bool, err
 }
 
 func (p *PostgresDatabase) CreateTickerPriceTable(ticker string) error {
-	// table := tickerPriceTableName(ticker)
+
 	err := p.dbConn.Table(ticker).AutoMigrate(&PriceData{})
 	p.dbConn.Migrator().CreateTable()
 	if err != nil {
@@ -54,7 +54,6 @@ func (p *PostgresDatabase) CreateTickerPriceTable(ticker string) error {
 }
 
 func (p *PostgresDatabase) BulkUploadPriceData(ticker string, priceData []PriceData) error {
-	// table := tickerPriceTableName(ticker)
 
 	if err := p.dbConn.Table(ticker).Create(&priceData).Error; err != nil {
 		return err
@@ -67,8 +66,6 @@ func (p *PostgresDatabase) BulkUploadPriceData(ticker string, priceData []PriceD
 func (p *PostgresDatabase) GetDataBetweenDates(ticker, startDate, endDate string) ([]PriceData, error) {
 
 	var priceData []PriceData
-
-	// table := tickerPriceTableName(ticker)
 	query := fmt.Sprintf("%s BETWEEN ? AND ?", colDate)
 
 	if err := p.dbConn.Table(ticker).Where(query, startDate, endDate).Find(&priceData).Error; err != nil {
