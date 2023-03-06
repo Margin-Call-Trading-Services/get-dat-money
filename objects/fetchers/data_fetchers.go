@@ -2,33 +2,14 @@ package fetchers
 
 import (
 	"fmt"
-	"time"
+	"log"
 
-	"github.com/ryanlattanzi/go-hello-world/utils"
+	"github.com/ryanlattanzi/get-dat-money/objects/db"
+	"github.com/ryanlattanzi/get-dat-money/utils"
 )
-
-const (
-	DateCol     = "DATE"
-	OpenCol     = "OPEN"
-	HighCol     = "HIGH"
-	LowCol      = "LOW"
-	CloseCol    = "CLOSE"
-	AdjCloseCol = "ADJ_CLOSE"
-	VolumeCol   = "VOLUME"
-)
-
-type PriceData struct {
-	Date     string  `json:"date"`
-	Open     float64 `json:"open"`
-	High     float64 `json:"high"`
-	Low      float64 `json:"low"`
-	Close    float64 `json:"close"`
-	AdjClose float64 `json:"adj_close"`
-	Volume   int64   `json:"volume"`
-}
 
 type DataFetcher interface {
-	GetTickerData(ticker string, starDate, endDate time.Time, interval string) ([]PriceData, error)
+	GetTickerData(ticker, starDate, endDate, interval string) ([]db.PriceData, error)
 }
 
 func NewYahooFinanceFetcher() YahooFinanceFetcher {
@@ -37,7 +18,7 @@ func NewYahooFinanceFetcher() YahooFinanceFetcher {
 
 type YahooFinanceFetcher struct{}
 
-func (yff YahooFinanceFetcher) GetTickerData(ticker string, starDate, endDate time.Time, interval string) ([]PriceData, error) {
+func (yff YahooFinanceFetcher) GetTickerData(ticker, starDate, endDate, interval string) ([]db.PriceData, error) {
 	url, err := yff.buildUrl(ticker, starDate, endDate, interval)
 	if err != nil {
 		return nil, err
@@ -48,13 +29,13 @@ func (yff YahooFinanceFetcher) GetTickerData(ticker string, starDate, endDate ti
 		return nil, err
 	}
 
-	var priceData []PriceData
+	var priceData []db.PriceData
 
 	for i, d := range data {
 		if i == 0 {
 			continue
 		}
-		priceData = append(priceData, PriceData{
+		priceData = append(priceData, db.PriceData{
 			Date:     d[0],
 			Open:     utils.StrToFloat(d[1]),
 			High:     utils.StrToFloat(d[2]),
@@ -65,12 +46,18 @@ func (yff YahooFinanceFetcher) GetTickerData(ticker string, starDate, endDate ti
 		})
 	}
 
+	log.Printf("Successfully retrieved full historical data for %s", ticker)
 	return priceData, nil
 }
 
-func (yff YahooFinanceFetcher) buildUrl(ticker string, starDate, endDate time.Time, interval string) (string, error) {
-	startEpoch := utils.ParseTimeToEpoch(starDate)
-	endEpoch := utils.ParseTimeToEpoch(endDate)
+func (yff YahooFinanceFetcher) buildUrl(ticker, starDate, endDate, interval string) (string, error) {
+
+	// Skipping error handling since this was already validated in api.GetTickerDataHandler()
+	startDateTime, _ := utils.ParseTimeStringDateOnly(starDate)
+	endDateTime, _ := utils.ParseTimeStringDateOnly(endDate)
+
+	startEpoch := utils.ParseTimeToEpoch(startDateTime)
+	endEpoch := utils.ParseTimeToEpoch(endDateTime)
 
 	url := fmt.Sprintf(
 		"https://query1.finance.yahoo.com/v7/finance/download/%s"+

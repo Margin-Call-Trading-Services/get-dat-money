@@ -1,17 +1,14 @@
-package server
+package api
 
 import (
 	"context"
-	"errors"
-	"log"
-	"time"
 
-	"github.com/ryanlattanzi/go-hello-world/objects/db"
-	"github.com/ryanlattanzi/go-hello-world/objects/fetchers"
+	"github.com/ryanlattanzi/get-dat-money/objects/db"
+	"github.com/ryanlattanzi/get-dat-money/objects/fetchers"
 )
 
 type Service interface {
-	GetTickerData(ctx context.Context, ticker string, startDate, endDate time.Time, interval string) ([]fetchers.PriceData, error)
+	GetTickerData(ctx context.Context, ticker, startDate, endDate, interval string) ([]db.PriceData, error)
 }
 
 type service struct {
@@ -26,22 +23,37 @@ func NewService(db db.Database, fetcher fetchers.DataFetcher) Service {
 	}
 }
 
-func (s *service) GetTickerData(ctx context.Context, ticker string, startDate, endDate time.Time, interval string) ([]fetchers.PriceData, error) {
+func (s *service) GetTickerData(ctx context.Context, ticker, startDate, endDate, interval string) ([]db.PriceData, error) {
 
-	tickerExists, err := s.db.CheckTickerExists(ticker)
+	tickerExists, err := s.db.CheckTickerPriceTableExists(ticker)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: If !tickerExists, we want to save to the DB
 	if !tickerExists {
-		log.Printf("%s does not exist in db...fetching from external API.", ticker)
-		data, err := s.fetcher.GetTickerData(ticker, startDate, endDate, interval)
+		data, err := s.fetcher.GetTickerData(
+			ticker,
+			DefaultTickerStartDate(),
+			DefaultTickerEndDate(),
+			interval,
+		)
 		if err != nil {
 			return nil, err
 		}
-		return data, nil
+
+		if err := s.db.CreateTickerPriceTable(ticker); err != nil {
+			return nil, err
+		}
+
+		if err := s.db.BulkUploadPriceData(ticker, data); err != nil {
+			return nil, err
+		}
 	}
 
-	return nil, errors.New("Did not retrieve any data.")
+	data, err := s.db.GetDataBetweenDates(ticker, startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }

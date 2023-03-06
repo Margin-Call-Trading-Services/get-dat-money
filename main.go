@@ -10,9 +10,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 
-	server "github.com/ryanlattanzi/go-hello-world/api"
-	"github.com/ryanlattanzi/go-hello-world/objects/db"
-	"github.com/ryanlattanzi/go-hello-world/objects/fetchers"
+	"github.com/ryanlattanzi/get-dat-money/api"
+	"github.com/ryanlattanzi/get-dat-money/objects/db"
+	"github.com/ryanlattanzi/get-dat-money/objects/fetchers"
 )
 
 func main() {
@@ -21,24 +21,21 @@ func main() {
 	dbConn := dbCfg.Connect()
 
 	db := db.NewPostgresDatabase(dbConn)
-	log.Println("Established PostgresDatabase struct.")
-
 	log.Println("Successfully connected to DB.")
-	defer dbConn.Close()
 
 	fetcher := fetchers.NewYahooFinanceFetcher()
 
-	svc := server.NewService(db, fetcher)
+	svc := api.NewService(db, fetcher)
 
 	app := fiber.New()
 
 	app.Use(logger.New())
 	app.Use(requestid.New())
 
-	api := app.Group("/api")
-	v1 := api.Group("/v1")
+	apiGroup := app.Group("/api")
+	v1Group := apiGroup.Group("/v1")
 
-	server.ApiRouter(v1, svc)
+	api.ApiRouter(v1Group, svc)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)

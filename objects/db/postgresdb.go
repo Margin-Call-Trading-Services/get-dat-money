@@ -1,27 +1,26 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
-	"time"
+	"log"
 
-	"github.com/ryanlattanzi/go-hello-world/objects/fetchers"
-	"github.com/ryanlattanzi/go-hello-world/utils"
+	"gorm.io/gorm"
 )
 
-func NewPostgresDatabase(conn *sql.DB) *PostgresDatabase {
+func NewPostgresDatabase(conn *gorm.DB) *PostgresDatabase {
 	return &PostgresDatabase{
 		dbConn: conn,
 	}
 }
 
 type PostgresDatabase struct {
-	dbConn *sql.DB
+	dbConn *gorm.DB
 }
 
-func (p *PostgresDatabase) CheckTickerExists(t string) (bool, error) {
+func (p *PostgresDatabase) CheckTickerPriceTableExists(ticker string) (bool, error) {
 
-	rows, err := p.dbConn.Query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'public';")
+	query := fmt.Sprint("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'public';")
+	rows, err := p.dbConn.Raw(query).Rows()
 
 	if err != nil {
 		return false, err
@@ -34,48 +33,45 @@ func (p *PostgresDatabase) CheckTickerExists(t string) (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		if existingTicker == t {
+		if existingTicker == ticker {
+			log.Printf("%s price table already exists...fetching from database.", ticker)
 			return true, nil
 		}
 	}
-
+	log.Printf("%s does not exist in db...fetching from external API.", ticker)
 	return false, nil
 }
 
-func (p *PostgresDatabase) GetDataBetweenDates(t string, startDate, endDate time.Time) ([]fetchers.PriceData, error) {
+func (p *PostgresDatabase) CreateTickerPriceTable(ticker string) error {
 
-	query := fmt.Sprintf(
-		"SELECT * FROM %s WHERE %s BETWEEN %s AND %s;",
-		t,
-		fetchers.DateCol,
-		startDate.Format(utils.DateOnly),
-		endDate.Format(utils.DateOnly),
-	)
-
-	rows, err := p.dbConn.Query(query)
+	err := p.dbConn.Table(ticker).AutoMigrate(&PriceData{})
+	p.dbConn.Migrator().CreateTable()
 	if err != nil {
+		return err
+	}
+	log.Printf("Successfully created price table %s", ticker)
+	return nil
+}
+
+func (p *PostgresDatabase) BulkUploadPriceData(ticker string, priceData []PriceData) error {
+
+	if err := p.dbConn.Table(ticker).Create(&priceData).Error; err != nil {
+		return err
+	}
+
+	log.Printf("Successfully uploaded %d price records to %s", len(priceData), ticker)
+	return nil
+}
+
+func (p *PostgresDatabase) GetDataBetweenDates(ticker, startDate, endDate string) ([]PriceData, error) {
+
+	var priceData []PriceData
+	query := fmt.Sprintf("%s BETWEEN ? AND ?", colDate)
+
+	if err := p.dbConn.Table(ticker).Where(query, startDate, endDate).Find(&priceData).Error; err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	var priceData []fetchers.PriceData
-
-	for rows.Next() {
-		var pd fetchers.PriceData
-		err := rows.Scan(
-			&pd.Date,
-			&pd.Open,
-			&pd.High,
-			&pd.Low,
-			&pd.Close,
-			&pd.AdjClose,
-			&pd.Volume,
-		)
-		if err != nil {
-			return nil, err
-		}
-		priceData = append(priceData, pd)
-	}
-
+	log.Printf("Successfully retrieved data for %s from %s to %s", ticker, startDate, endDate)
 	return priceData, nil
 }
