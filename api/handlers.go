@@ -19,17 +19,15 @@ var (
 
 func errorResponse(err error) *fiber.Map {
 	return &fiber.Map{
-		"status": false,
-		"data":   "",
-		"error":  err.Error(),
+		"data":  "",
+		"error": err.Error(),
 	}
 }
 
 func successResponse(arg interface{}) *fiber.Map {
 	return &fiber.Map{
-		"status": true,
-		"data":   arg,
-		"error":  nil,
+		"data":  arg,
+		"error": nil,
 	}
 }
 
@@ -43,52 +41,60 @@ func DefaultTickerEndDate() string {
 	return today
 }
 
+func DefaultTickerInterval() string {
+	return "1d"
+}
+
 func GetTickerDataHandler(svc Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		// TODO: put the API params in a struct or something for validation?
-
-		type resp struct {
-			Ticker string         `json:"ticker"`
-			Data   []db.PriceData `json:"data"`
+		p := struct {
+			ticker    string
+			startDate string
+			endDate   string
+			interval  string
+		}{
+			ticker:    strings.ToUpper(c.Query("ticker")),
+			startDate: c.Query("start_date", DefaultTickerStartDate()),
+			endDate:   c.Query("end_date", DefaultTickerEndDate()),
+			interval:  c.Query("interval", DefaultTickerInterval()),
 		}
 
-		// Parse ticker
-		ticker := strings.ToUpper(c.Query("ticker"))
-		if ticker == "" {
+		// Required ticker param
+		if p.ticker == "" {
 			c.Status(http.StatusBadRequest)
 			return c.JSON(errorResponse(errMissingTicker))
 		}
 
-		// Parse start; validating dateOnly format
-		start := c.Query("start_date", DefaultTickerStartDate())
-		if _, err := utils.ParseTimeStringDateOnly(start); err != nil {
+		// Validate startDate dateOnly format
+		if _, err := utils.ParseTimeStringDateOnly(p.startDate); err != nil {
 			c.Status(http.StatusBadRequest)
 			return c.JSON(errorResponse(err))
 		}
 
-		// Parse end; validating dateOnly format
-		end := c.Query("end_date", DefaultTickerEndDate())
-		if _, err := utils.ParseTimeStringDateOnly(end); err != nil {
+		// Validate endDate dateOnly format
+		if _, err := utils.ParseTimeStringDateOnly(p.endDate); err != nil {
 			c.Status(http.StatusBadRequest)
 			return c.JSON(errorResponse(err))
 		}
 
 		// Parse interval
-		interval := c.Query("interval", "1d")
 
-		log.Printf("Recieved GET request for %s from %s to %s", ticker, start, end)
+		log.Printf("Recieved GET request for %s (%s) from %s to %s", p.ticker, p.interval, p.startDate, p.endDate)
 
-		data, err := svc.GetTickerData(c.Context(), ticker, start, end, interval)
+		data, err := svc.GetTickerData(c.Context(), p.ticker, p.startDate, p.endDate, p.interval)
 		if err != nil {
 			c.Status(http.StatusInternalServerError)
 			return c.JSON(errorResponse(err))
 		}
 		log.Printf("Recieved %d price records.", len(data))
 
-		return c.JSON(successResponse(resp{
-			Ticker: ticker,
-			Data:   data,
+		return c.JSON(successResponse(struct {
+			Ticker    string         `json:"ticker"`
+			PriceData []db.PriceData `json:"price_data"`
+		}{
+			Ticker:    p.ticker,
+			PriceData: data,
 		}))
 	}
 }

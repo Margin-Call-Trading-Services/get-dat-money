@@ -27,8 +27,8 @@ type PriceData struct {
 }
 
 type Database interface {
-	CheckTickerPriceTableExists(ticker string) (bool, error)
-	CreateTickerPriceTable(ticker string) error
-	BulkUploadPriceData(ticker string, priceData []PriceData) error
-	GetDataBetweenDates(ticker, startDate, endDate string) ([]PriceData, error)
+	CheckTickerPriceTableExists(table string) (bool, error)
+	CreateTickerPriceTable(table string) error
+	BulkUploadPriceData(table string, priceData []PriceData) error
+	GetDataBetweenDates(table, startDate, endDate string) ([]PriceData, error)
 }
