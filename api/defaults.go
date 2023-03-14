@@ -11,8 +11,8 @@ func defaultTickerStartDate() string {
 }
 
 func defaultTickerEndDate() string {
-	currentTime := time.Now()
-	today := currentTime.Format(utils.DateOnly)
+	now := time.Now()
+	today := now.Format(utils.DateOnly)
 	return today
 }
 
