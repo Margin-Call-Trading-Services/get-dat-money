@@ -1,4 +1,4 @@
-module github.com/ryanlattanzi/get-dat-money
+module github.com/MCTS/get-dat-money
 
 go 1.20
 

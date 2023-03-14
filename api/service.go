@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ryanlattanzi/get-dat-money/objects/db"
-	"github.com/ryanlattanzi/get-dat-money/objects/fetchers"
+	"github.com/MCTS/get-dat-money/objects/db"
+	"github.com/MCTS/get-dat-money/objects/fetchers"
 )
 
 type Service interface {
@@ -35,8 +35,8 @@ func (s *service) GetTickerData(ctx context.Context, ticker, startDate, endDate,
 	if !tickerExists {
 		data, err := s.fetcher.GetTickerData(
 			ticker,
-			DefaultTickerStartDate(),
-			DefaultTickerEndDate(),
+			defaultTickerStartDate(),
+			defaultTickerEndDate(),
 			interval,
 		)
 		if err != nil {
