@@ -2,9 +2,10 @@ package api
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/ryanlattanzi/get-dat-money/objects/db"
-	"github.com/ryanlattanzi/get-dat-money/objects/fetchers"
+	"github.com/MCTS/get-dat-money/objects/db"
+	"github.com/MCTS/get-dat-money/objects/fetchers"
 )
 
 type Service interface {
@@ -25,7 +26,8 @@ func NewService(db db.Database, fetcher fetchers.DataFetcher) Service {
 
 func (s *service) GetTickerData(ctx context.Context, ticker, startDate, endDate, interval string) ([]db.PriceData, error) {
 
-	tickerExists, err := s.db.CheckTickerPriceTableExists(ticker)
+	table := fmt.Sprintf("%s_%s", ticker, interval)
+	tickerExists, err := s.db.CheckTickerPriceTableExists(table)
 	if err != nil {
 		return nil, err
 	}
@@ -33,24 +35,24 @@ func (s *service) GetTickerData(ctx context.Context, ticker, startDate, endDate,
 	if !tickerExists {
 		data, err := s.fetcher.GetTickerData(
 			ticker,
-			DefaultTickerStartDate(),
-			DefaultTickerEndDate(),
+			defaultTickerStartDate(),
+			defaultTickerEndDate(),
 			interval,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		if err := s.db.CreateTickerPriceTable(ticker); err != nil {
+		if err := s.db.CreateTickerPriceTable(table); err != nil {
 			return nil, err
 		}
 
-		if err := s.db.BulkUploadPriceData(ticker, data); err != nil {
+		if err := s.db.BulkUploadPriceData(table, data); err != nil {
 			return nil, err
 		}
 	}
 
-	data, err := s.db.GetDataBetweenDates(ticker, startDate, endDate)
+	data, err := s.db.GetDataBetweenDates(table, startDate, endDate)
 	if err != nil {
 		return nil, err
 	}

@@ -10,9 +10,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 
-	"github.com/ryanlattanzi/get-dat-money/api"
-	"github.com/ryanlattanzi/get-dat-money/objects/db"
-	"github.com/ryanlattanzi/get-dat-money/objects/fetchers"
+	"github.com/MCTS/get-dat-money/api"
+	"github.com/MCTS/get-dat-money/objects/db"
+	"github.com/MCTS/get-dat-money/objects/fetchers"
 )
 
 func main() {

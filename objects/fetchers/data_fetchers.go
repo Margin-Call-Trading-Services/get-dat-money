@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ryanlattanzi/get-dat-money/objects/db"
-	"github.com/ryanlattanzi/get-dat-money/utils"
+	"github.com/MCTS/get-dat-money/objects/db"
+	"github.com/MCTS/get-dat-money/utils"
 )
 
 type DataFetcher interface {
@@ -23,6 +23,8 @@ func (yff YahooFinanceFetcher) GetTickerData(ticker, starDate, endDate, interval
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("Built url %s", url)
 
 	data, err := utils.ReadCSVFromUrl(url)
 	if err != nil {

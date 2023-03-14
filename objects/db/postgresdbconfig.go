@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 
-	"github.com/ryanlattanzi/get-dat-money/utils"
+	"github.com/MCTS/get-dat-money/utils"
 )
 
 func NewPostgresConfig() PostgresDatabaseConfig {
