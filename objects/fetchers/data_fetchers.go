@@ -24,6 +24,8 @@ func (yff YahooFinanceFetcher) GetTickerData(ticker, starDate, endDate, interval
 		return nil, err
 	}
 
+	log.Printf("Built url %s", url)
+
 	data, err := utils.ReadCSVFromUrl(url)
 	if err != nil {
 		return nil, err
