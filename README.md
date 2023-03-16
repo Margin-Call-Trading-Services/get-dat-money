@@ -9,10 +9,13 @@ ___
 
 There are three query params expected:
 - `ticker` (required)
-- `start_date` (optional; defaults to 1900-01-01)
+- `start_date` (optional; defaults to "1900-01-01")
     - Expected format: YYYY-MM-DD
 - `end_date` (optional; defaults to today's date)
     - Expected format: YYYY-MM-DD
+    - Note that the data returned is up to (but not including) the `end_date` requested. e.g. sending a request with `end_date=2023-03-15` will return data for `2023-03-14`, but not for `2023-03-15`.
+- `interval` (optional; defaults to "1d")
+    - Currently, "1d" is the only valid input until we beef out the fetcher(s).
 
 ---
 
@@ -24,13 +27,15 @@ There are two `make` commands:
     - Optional argument `detach` defaults to `false` so you can see the logs.
 - `make kill`
     - Kills the containers with a simple `docker compose down`.
+- `make test`
+    - Runs all unit tests.
 
 Once the environment is healthy and the server is up, you can run `curl` commands to see the magic work, such as:
 
 ```
 curl 'http://localhost:8080/api/v1/prices?ticker=AAPL&start_date=2023-03-01'
 curl 'http://localhost:8080/api/v1/prices?ticker=MSFT&start_date=2022-01-01&end_date=2023-03-04'
-curl 'http://localhost:8080/api/v1/prices?ticker=TSLA'
+curl 'http://localhost:8080/api/v1/prices?ticker=TSLA&interval=1d'
 ```
 
 ---
@@ -39,7 +44,6 @@ curl 'http://localhost:8080/api/v1/prices?ticker=TSLA'
 
 This is a young buck that is still a work in progress to beef up. Tasks on the horizon are:
 
-- Adding test coverage.
 - Adding CI/CD GH Action workflows.
 - Adding terraform (or AWS CDK?) IaC. Ideally, we'd have this running as an ECS service in a private subnet, with the access path being API Gateway, Network Load Balancer, and finally Application Load Balancer.
 - See what other endpoints and functionalities make sense for this service.

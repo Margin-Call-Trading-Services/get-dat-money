@@ -5,3 +5,6 @@ server:
 
 kill:
 	docker compose down
+
+test:
+	go test ./... -cover
