@@ -6,7 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/MCTS/get-dat-money/objects/db"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -57,5 +59,22 @@ func TestGetTickerDataHandler(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
-	t.Run("Success_OnlyStartDate", func(t *testing.T) {})
+	t.Run("Success_OnlyStartDate", func(t *testing.T) {
+
+		svc.On(
+			"GetTickerData",
+			mock.AnythingOfType("*fasthttp.RequestCtx"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+		).Return([]db.PriceData{}, nil)
+
+		target := fmt.Sprint(getTickerDataEndpoint, "?ticker=AAPL")
+
+		resp, err := app.Test(httptest.NewRequest(http.MethodGet, target, nil))
+
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
 }
