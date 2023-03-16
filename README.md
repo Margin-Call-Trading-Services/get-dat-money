@@ -40,10 +40,21 @@ curl 'http://localhost:8080/api/v1/prices?ticker=TSLA&interval=1d'
 
 ---
 
+## CI
+
+We use Github Actions for our CI workflow. You can find the simple job in `.github/workflows/ci.yml`.
+
+It simply sets up two Go version environments: 1.19 and 1.20. Then, it installs dependencies, builds the module, and runs
+```
+go test ./... -cover
+```
+to recursively find and run tests, as well as print out the test coverage. You can find all the runs [here](https://github.com/Margin-Call-Trading-Services/get-dat-money/actions/workflows/ci.yml).
+
+---
+
 ## TODO
 
 This is a young buck that is still a work in progress to beef up. Tasks on the horizon are:
 
-- Adding CI/CD GH Action workflows.
 - Adding terraform (or AWS CDK?) IaC. Ideally, we'd have this running as an ECS service in a private subnet, with the access path being API Gateway, Network Load Balancer, and finally Application Load Balancer.
 - See what other endpoints and functionalities make sense for this service.
