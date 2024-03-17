@@ -1,7 +1,8 @@
 detach ?= false
 
+.PHONY: server kill test
 server:
-	./scripts/server.sh $(detach)
+	./run.sh $(detach)
 
 kill:
 	docker compose down
