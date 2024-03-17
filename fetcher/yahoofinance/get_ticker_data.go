@@ -1,24 +1,14 @@
-package fetchers
+package yahoofinance
 
 import (
 	"fmt"
 	"log"
 
-	"github.com/MCTS/get-dat-money/objects/db"
+	"github.com/MCTS/get-dat-money/model"
 	"github.com/MCTS/get-dat-money/utils"
 )
 
-type DataFetcher interface {
-	GetTickerData(ticker, starDate, endDate, interval string) ([]db.PriceData, error)
-}
-
-func NewYahooFinanceFetcher() YahooFinanceFetcher {
-	return YahooFinanceFetcher{}
-}
-
-type YahooFinanceFetcher struct{}
-
-func (yff YahooFinanceFetcher) GetTickerData(ticker, starDate, endDate, interval string) ([]db.PriceData, error) {
+func (yff YahooFinanceFetcher) GetTickerData(ticker, starDate, endDate, interval string) ([]model.PriceData, error) {
 	url, err := yff.buildUrl(ticker, starDate, endDate, interval)
 	if err != nil {
 		return nil, err
@@ -29,13 +19,13 @@ func (yff YahooFinanceFetcher) GetTickerData(ticker, starDate, endDate, interval
 		return nil, err
 	}
 
-	var priceData []db.PriceData
+	var priceData []model.PriceData
 
 	for i, d := range data {
 		if i == 0 {
 			continue
 		}
-		priceData = append(priceData, db.PriceData{
+		priceData = append(priceData, model.PriceData{
 			Date:     d[0],
 			Open:     utils.StrToFloat(d[1]),
 			High:     utils.StrToFloat(d[2]),
